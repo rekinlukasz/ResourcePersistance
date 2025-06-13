@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zarządzanie Zasobami</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        input[type="number"], input[type="checkbox"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        input[type="checkbox"] {
+            width: auto;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .resources-list {
+            margin-top: 20px;
+        }
+        .resource-item {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 10px;
+        }
+        .resource-item h3 {
+            margin-top: 0;
+            color: #007bff;
+        }
+        .resource-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .detail-item {
+            background: white;
+            padding: 8px;
+            border-radius: 4px;
+            border-left: 3px solid #007bff;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+        }
+        .success-message {
+            background-color: #d4edda;
+            color: #155724;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            display: none;
+        }
+        .error-message {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Zarządzanie Zasobami</h1>
+
+    <div id="successMessage" class="success-message"></div>
+    <div id="errorMessage" class="error-message"></div>
+
+    <h2>Dodaj nowy zasób</h2>
+    <form id="resourceForm">
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="doskonalosc">Doskonalość:</label>
+                <input type="number" id="doskonalosc" name="doskonalosc" step="0.01" required>
+            </div>
+
+            <div class="form-group">
+                <label for="oporAerodynamiczny">Opór aerodynamiczny:</label>
+                <input type="number" id="oporAerodynamiczny" name="oporAerodynamiczny" step="0.01" required>
+            </div>
+
+            <div class="form-group">
+                <label for="masaWlasna">Masa własna:</label>
+                <input type="number" id="masaWlasna" name="masaWlasna" step="0.01" required>
+            </div>
+
+            <div class="form-group">
+                <label for="rozpietoscSkrzydel">Rozpiętość skrzydeł:</label>
+                <input type="number" id="rozpietoscSkrzydel" name="rozpietoscSkrzydel" step="0.01" required>
+            </div>
+
+            <div class="form-group">
+                <label for="minimalnaPredkoscOpadania">Minimalna prędkość opadania:</label>
+                <input type="number" id="minimalnaPredkoscOpadania" name="minimalnaPredkoscOpadania" step="0.01" required>
+            </div>
+
+            <div class="form-group">
+                <label for="minimalnaPredkoscLotu">Minimalna prędkość lotu:</label>
+                <input type="number" id="minimalnaPredkoscLotu" name="minimalnaPredkoscLotu" step="0.01" required>
+            </div>
+
+            <div class="form-group">
+                <label for="promienKrazenia">Promień krążenia:</label>
+                <input type="number" id="promienKrazenia" name="promienKrazenia" step="0.01" required>
+            </div>
+
+            <div class="form-group">
+                <label for="liczbaPrzyrzadow">Liczba przyrządów:</label>
+                <input type="number" id="liczbaPrzyrzadow" name="liczbaPrzyrzadow" required>
+            </div>
+
+            <div class="form-group">
+                <label for="czyPosiadaRadio">Czy posiada radio:</label>
+                <input type="checkbox" id="czyPosiadaRadio" name="czyPosiadaRadio">
+            </div>
+
+            <div class="form-group">
+                <label for="maksymalnePrzeciazenie">Maksymalne przeciążenie:</label>
+                <input type="number" id="maksymalnePrzeciazenie" name="maksymalnePrzeciazenie" step="0.01" required>
+            </div>
+        </div>
+
+        <button type="submit">Dodaj zasób</button>
+    </form>
+</div>
+
+<div class="container">
+    <h2>Lista zasobów</h2>
+    <button onclick="loadResources()">Odśwież listę</button>
+    <div id="resourcesList" class="resources-list"></div>
+</div>
+
+<script>
+    // Funkcja do ładowania zasobów
+    async function loadResources() {
+        try {
+            const response = await fetch('/resources/api');
+            const resources = await response.json();
+
+            const resourcesList = document.getElementById('resourcesList');
+
+            if (resources.length === 0) {
+                resourcesList.innerHTML = '<p>Brak zasobów do wyświetlenia.</p>';
+                return;
+            }
+
+            resourcesList.innerHTML = resources.map(resource => `
+                <div class="resource-item">
+                    <h3>Zasób ID: ${resource.id}</h3>
+                    <div class="resource-details">
+                        <div class="detail-item"><strong>Doskonalość:</strong> ${resource.doskonalosc}</div>
+                        <div class="detail-item"><strong>Opór aerodynamiczny:</strong> ${resource.oporAerodynamiczny}</div>
+                        <div class="detail-item"><strong>Masa własna:</strong> ${resource.masaWlasna}</div>
+                        <div class="detail-item"><strong>Rozpiętość skrzydeł:</strong> ${resource.rozpietoscSkrzydel}</div>
+                        <div class="detail-item"><strong>Min. prędkość opadania:</strong> ${resource.minimalnaPredkoscOpadania}</div>
+                        <div class="detail-item"><strong>Min. prędkość lotu:</strong> ${resource.minimalnaPredkoscLotu}</div>
+                        <div class="detail-item"><strong>Promień krążenia:</strong> ${resource.promienKrazenia}</div>
+                        <div class="detail-item"><strong>Liczba przyrządów:</strong> ${resource.liczbaPrzyrzadow}</div>
+                        <div class="detail-item"><strong>Posiada radio:</strong> ${resource.czyPosiadaRadio ? 'Tak' : 'Nie'}</div>
+                        <div class="detail-item"><strong>Maks. przeciążenie:</strong> ${resource.maksymalnePrzeciazenie}</div>
+                    </div>
+                </div>
+            `).join('');
+        } catch (error) {
+            console.error('Błąd podczas ładowania zasobów:', error);
+            showError('Błąd podczas ładowania zasobów');
+        }
+    }
+
+    // Funkcja do dodawania nowego zasobu
+    async function submitResource(event) {
+        event.preventDefault();
+
+        const formData = new FormData(event.target);
+        const resource = {
+            doskonalosc: parseFloat(formData.get('doskonalosc')),
+            oporAerodynamiczny: parseFloat(formData.get('oporAerodynamiczny')),
+            masaWlasna: parseFloat(formData.get('masaWlasna')),
+            rozpietoscSkrzydel: parseFloat(formData.get('rozpietoscSkrzydel')),
+            minimalnaPredkoscOpadania: parseFloat(formData.get('minimalnaPredkoscOpadania')),
+            minimalnaPredkoscLotu: parseFloat(formData.get('minimalnaPredkoscLotu')),
+            promienKrazenia: parseFloat(formData.get('promienKrazenia')),
+            liczbaPrzyrzadow: parseInt(formData.get('liczbaPrzyrzadow')),
+            czyPosiadaRadio: formData.get('czyPosiadaRadio') === 'on',
+            maksymalnePrzeciazenie: parseFloat(formData.get('maksymalnePrzeciazenie'))
+        };
+
+        try {
+            const response = await fetch('/resources', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(resource)
+            });
+
+            if (response.ok) {
+                showSuccess('Zasób został pomyślnie dodany!');
+                event.target.reset();
+                loadResources();
+            } else {
+                showError('Błąd podczas dodawania zasobu');
+            }
+        } catch (error) {
+            console.error('Błąd:', error);
+            showError('Błąd podczas komunikacji z serwerem');
+        }
+    }
+
+    // Funkcje do wyświetlania komunikatów
+    function showSuccess(message) {
+        const successElement = document.getElementById('successMessage');
+        successElement.textContent = message;
+        successElement.style.display = 'block';
+        document.getElementById('errorMessage').style.display = 'none';
+
+        setTimeout(() => {
+            successElement.style.display = 'none';
+        }, 5000);
+    }
+
+    function showError(message) {
+        const errorElement = document.getElementById('errorMessage');
+        errorElement.textContent = message;
+        errorElement.style.display = 'block';
+        document.getElementById('successMessage').style.display = 'none';
+
+        setTimeout(() => {
+            errorElement.style.display = 'none';
+        }, 5000);
+    }
+
+    // Inicjalizacja
+    document.getElementById('resourceForm').addEventListener('submit', submitResource);
+
+    // Ładowanie zasobów przy starcie
+    window.addEventListener('load', loadResources);
+</script>
+</body>
+</html>

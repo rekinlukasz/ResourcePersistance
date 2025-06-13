@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  postgres:
+    build: .
+    container_name: resource-postgres
+    environment:
+      POSTGRES_DB: resourcedb
+      POSTGRES_USER: resourceuser
+      POSTGRES_PASSWORD: resourcepass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
